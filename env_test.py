@@ -1,24 +1,27 @@
 #Environment
-timestep_length= .25 #15 minute chunk?
+timestep_length= .25 # 15 minute increments
+
 class GridEnvironment:
-    def __init__(self, N, data):
+
+    def __init__(self, N, demand_data, solar_data, wind_data):
+
+        # Need to think about what start / stop time we do. 12am-12am? 4am-4am etc <-- Carla comment: recommend 12am-11:59pm
         self.N = N  # Number of EVs
 
-        #TO BE DONE BY CARLA
-        # data needs to be defined
-        self.data = data #Feed in Historical Data
-        # Initialize state variables
-        self.demand = data[0,0] #First demand entry
-        self.solar = data[0,1]#First solar entry
-        self.wind = data[0,2] #First wind entry
+        # TODO BY CARLA
+        # Initialize with day 0 data (96 points = 24 hours of 15 min data)
+        self.demand = demand_data[0,:]  
+        self.solar = solar_data[0,:]
+        self.wind = wind_data[0,:]
+
+        # TODO BY MAX
         self.P_EV = [0] * N  # Power status of each EV (non are connected to grid)
+
         self.timestep_length = timestep_length  # Length of each timestep in hours
         
-        #Episode End
+        # Episode End
         self.current_timestep = 0
         self.total_timesteps = int(24 / self.timestep_length) #Assuming episode is 24 hours
-        #Need to think about what start / stop time we do. 12am-12am? 4am-4am etc
-        # Other
 
 
     def reset(self, day):
