@@ -22,6 +22,7 @@ class DQNAgent:
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         # TWEAK, because of time dependcy, would a LSTM work better?
+        #use some sort of convolutional NN
         model = tf.keras.Sequential()
         model.add(layers.Dense(24, input_dim=self.state_size, activation='relu'))
         model.add(layers.Dense(24, activation='relu'))
@@ -42,15 +43,20 @@ class DQNAgent:
         act_values = self.model.predict(state_batch_dim)
         return np.argmax(act_values[0])  # returns action
 
+
+#MAYBE NOT NEEDED
+#REPLAY used for distinguishing wierd patterns
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
-
             next_state = np.array(next_state).reshape(1, -1) #add batch dim
             state = np.array(state).reshape(1, -1) #add batch dim
 
+
             if not done:
+                print("Shape of state before predict:", np.array(state).shape)
+                print("Shape of next_state before predict:", np.array(next_state).shape)
                 target = (reward + self.gamma * np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
             target_f[0][action] = target
@@ -61,3 +67,5 @@ class DQNAgent:
     def load_model(self, model_name):
         self.model = load_model(model_name)
         
+#PPO
+#Actor Critic

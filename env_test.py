@@ -100,9 +100,17 @@ class GridEnvironment:
         
         #Move env forward one timestep
         self.current_timestep += 1
-        done = self.current_timestep >= self.total_timesteps
-        next_demand, next_solar, next_wind = self.get_state()
-        
+        done = self.current_timestep >= self.total_timesteps-1
+
+        if not done:
+            # Move env forward one timestep only if we're not done
+            self.current_timestep += 1
+            next_demand, next_solar, next_wind = self.get_state()
+        else:
+        # Handle the terminal state here, could be resetting or providing terminal values
+        # Make sure to handle the case where you don't have a next state to provide
+            next_demand, next_solar, next_wind, next_P_EV = 0, 0, 0, [0] * self.N
+    
         return reward, done, next_demand, next_solar, next_wind , next_P_EV
    
     def calculate_reward(self):
