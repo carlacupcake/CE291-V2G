@@ -46,7 +46,7 @@ class DQNAgent_nr:
         next_state = np.expand_dims(future_state, axis=0)  # Adding batch dimension
         target = reward
         if not done:
-            target = (reward + self.gamma * np.amax(self.model.predict(next_state))[0])
+            target = (reward + self.gamma * np.amax(self.model.predict(next_state)[0]))
         target_f = self.model.predict(state)
         target_f[0][action] = target
         self.model.fit(state, target_f, epochs=1, verbose=0)
