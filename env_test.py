@@ -38,6 +38,23 @@ class GridEnvironment:
         #CHANGE WHEN GOING THROUGH MORE THAN ONE DAY OF DATA
         return self.get_state()
 
+    def decode_action(self, action):
+        """
+        Decode a single integer action into actions for each EV.
+        
+        Args:
+        - action: The single integer action to decode that comes from the NN model.
+        - N: The number of EVs.
+        
+        Returns:
+        - A list of actions for each EV.
+        """
+        actions = []
+        for _ in range(self.N):
+            actions.append(action % 3 - 1)  # Decoding to get -1, 0, 1
+            action //= 3
+        return actions[::-1]  # Reverse to match the original order
+
     def battery_voltage(self, soc):
         min_voltage = 3.0  # Minimum voltage at 0% SoC
         max_voltage = 4.2  # Maximum voltage at 100% SoC
@@ -62,28 +79,29 @@ class GridEnvironment:
         # Ensure new_soc is of a floating point type to accommodate fractional changes
         current_soc=np.array(soc, dtype=float)
         new_soc = np.copy(current_soc) # Cast to float to prevent UFuncTypeError
-        action_np = np.array(action, dtype=float)
+        
         powerEV = np.zeros_like(soc, dtype=float)  # Initialize powerEV array with zeros
-     
 
+        actions=self.decode_action(action)
+        actions = np.array(actions)
     
-
+        
         # Charging
-        charge_indices = (action_np == 1) & (current_soc < max_soc)
+        charge_indices = (actions == 1) & (current_soc < max_soc)
         added_energy = np.minimum(power[charge_indices] * timestep, (max_soc - current_soc[charge_indices]) / 100 * battery_capacity) * charge_efficiency
         powerEV[charge_indices] = -(added_energy / timestep)  # Negative with respect to grid
         new_soc[charge_indices] += added_energy / battery_capacity * 100
         new_soc[charge_indices] = np.minimum(new_soc[charge_indices], max_soc)
 
         # Discharging
-        discharge_indices = (action_np == -1) & (current_soc > min_soc)
+        discharge_indices = (actions == -1) & (current_soc > min_soc)
         used_energy = np.minimum(power[discharge_indices] * timestep, (current_soc[discharge_indices] - min_soc) / 100 * battery_capacity) * discharge_efficiency
         powerEV[discharge_indices] = used_energy / timestep  # Positive with respect to grid
         new_soc[discharge_indices] -= used_energy / battery_capacity * 100
         new_soc[discharge_indices] = np.maximum(new_soc[discharge_indices], min_soc)
 
         # Idle
-        idle_indices = (action_np == 0)
+        idle_indices = (actions == 0)
         powerEV[idle_indices] = 0  # No power exchange for idle
 
         return new_soc, powerEV
