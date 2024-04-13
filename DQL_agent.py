@@ -40,7 +40,7 @@ class DQNAgent:
 
         state_batch_dim = np.expand_dims(state, axis=0)  # Add a batch dimension
 
-        act_values = self.model.predict(state_batch_dim)
+        act_values = self.model.predict(state_batch_dim, verbose=0)
         return np.argmax(act_values[0])  # returns action
 
 
@@ -50,15 +50,12 @@ class DQNAgent:
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
-            next_state = np.expand_dims(next_state, axis=0) 
-            state=np.expand_dims(next_state, axis=0)
+            next_state = np.expand_dims(next_state, axis=0)  #adds batch dimension
+            state=np.expand_dims(state, axis=0) #adds batch dimension
 
             if not done:
-                print("Shape of state before predict:", np.array(state).shape)
-                print("Shape of next_state before predict:", np.array(next_state).shape)
-                target = (reward + self.gamma * np.amax(self.model.predict(next_state)[0]))
-
-            target_f = self.model.predict(state)
+                target = (reward + self.gamma * np.amax(self.model.predict(next_state, verbose=0)[0]))
+            target_f = self.model.predict(state, verbose=0)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:

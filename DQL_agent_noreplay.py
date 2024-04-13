@@ -38,7 +38,7 @@ class DQNAgent_nr:
 
         state_batch_dim = np.expand_dims(state, axis=0)  # Add a batch dimension
 
-        act_values = self.model.predict(state_batch_dim)
+        act_values = self.model.predict(state_batch_dim, verbose=0)
         return np.argmax(act_values[0])  # returns action
 
     def learn(self, current_state, action, reward, future_state, done):
@@ -46,8 +46,8 @@ class DQNAgent_nr:
         next_state = np.expand_dims(future_state, axis=0)  # Adding batch dimension
         target = reward
         if not done:
-            target = (reward + self.gamma * np.amax(self.model.predict(next_state)[0]))
-        target_f = self.model.predict(state)
+            target = (reward + self.gamma * np.amax(self.model.predict(next_state, verbose=0)[0]))
+        target_f = self.model.predict(state, verbose=0)
         target_f[0][action] = target
         self.model.fit(state, target_f, epochs=1, verbose=0)
 
