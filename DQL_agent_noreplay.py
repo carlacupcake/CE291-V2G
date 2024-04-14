@@ -3,6 +3,8 @@ from collections import deque
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Reshape
 import random
 import numpy as np
 
@@ -23,14 +25,12 @@ class DQNAgent_nr:
         # Neural Net for Deep-Q learning Model
         # TWEAK, because of time dependcy, would a LSTM work better?
         #use some sort of convolutional NN
-        model = tf.keras.Sequential()
-        model.add(layers.Dense(24, input_dim=self.state_size, activation='relu'))
-        model.add(layers.Dense(24, activation='relu'))
-        model.add(layers.Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse', optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=self.learning_rate))
-
-        return model
-
+       model = tf.keras.Sequential()
+       model.add(layers.Dense(24, input_dim=self.state_size, activation='relu'))
+       model.add(layers.Dense(24, activation='relu'))
+       model.add(layers.Dense(self.action_size, activation='linear'))
+       model.compile(loss='mse', optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=self.learning_rate))
+       return model
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:

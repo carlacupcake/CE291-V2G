@@ -65,9 +65,13 @@ class GridEnvironment:
         #MAX's CODE
         #ACTION IS A VECTOR OF 0s 1s, -1s
         #return power output of each EV (P_EV) & the SOC for the next state
+
+        #Based on rouh calculations, need roughly 405 EVs
+        #10 groups of 41 EVs?
+        #Does just multiplying work?
         timestep = (1/60)  # 15 minutes
-        max_power = 11/50  # Maximum power in kW
-        battery_capacity = 1  # Battery capacity in kWh
+        max_power = 11*41  # Maximum power in kW for 41 EVS
+        battery_capacity = 50*41  # Battery capacity in kWh , for 41 EVs
         charge_efficiency = 0.9
         discharge_efficiency = 0.95
         min_soc = 20
