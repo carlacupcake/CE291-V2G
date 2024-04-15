@@ -16,12 +16,12 @@ class DQNAgent:
         self.sequence_length= sequence_length
         self.memory = deque(maxlen=2000)  # Experience replay buffer
         self.gamma = 0.95  # discount rate tweak
-        self.epsilon = 1.0  # exploration rate Tweak
+        self.epsilon = .1  # exploration rate Tweak, no decay in this version
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995 # tweak
         self.learning_rate = 0.001
         self.model = self._build_model()
-
+    """
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         #LSTM for temporal dependicies of data
@@ -33,6 +33,20 @@ class DQNAgent:
         model.compile(loss='mse', optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=self.learning_rate))
         
         return model
+        """
+    def _build_model(self):
+        model = tf.keras.Sequential()
+        # First RNN layer with return_sequences=True to pass sequences to the next RNN layer
+        model.add(layers.SimpleRNN(50, input_shape=(self.sequence_length, self.state_size), return_sequences=True))
+        # Second RNN layer with return_sequences=False to flatten the output
+        model.add(layers.SimpleRNN(50, return_sequences=False))
+        model.add(layers.Dense(24, activation='relu'))
+        # Output layer for action predictions
+        model.add(layers.Dense(self.action_size, activation='linear'))
+        model.compile(loss='mse', optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=self.learning_rate))
+
+        return model
+
 
 
 
@@ -58,9 +72,9 @@ class DQNAgent:
         target_f[0][action] = target
         self.model.fit(lstm_input, target_f, epochs=1, verbose=0)
 
-        # Epsilon decay
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        # Epsilon decay, get rid?
+        #if self.epsilon > self.epsilon_min:
+            #self.epsilon *= self.epsilon_decay
         
 #PPO
 #Actor Critic
