@@ -27,7 +27,7 @@ class GridEnvironment:
     
         self.P_EV = [0] * N  # Power status of each EV (non are connected to grid)
         # TODO Answer: If each episode is finite, how does the SoC status roll over to next episode and how does RL agent learn this?
-        self.SoC = [50] * N  # SoC status of each EV (non are connected to grid), used by environment ONLY 
+        self.SoC = [100] * N  # SoC status of each EV (non are connected to grid), used by environment ONLY 
     
 
     def reset(self, day):
@@ -71,8 +71,8 @@ class GridEnvironment:
         #10 groups of 41 EVs?
         #Does just multiplying work?
         timestep = (1/60)  # 1 minute
-        max_power = (11*200)/3500  # Maximum power in kW, attempting to scale 100 EVs?
-        battery_capacity = (50*200)/3500  # Battery capacity, scaled by entire system, each represents 100 EVs
+        max_power = (11*400)/3500  # Maximum power in kW, attempting to scale 100 EVs?
+        battery_capacity = (50*400)/3500 # Battery capacity, scaled by entire system, each represents 100 EVs, testing only having 1 mega EV
         charge_efficiency = 0.9
         discharge_efficiency = 0.95
         min_soc = 20
