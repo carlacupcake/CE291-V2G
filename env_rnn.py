@@ -89,7 +89,6 @@ class GridEnvironment:
 
         actions=self.decode_action(action)
         actions = np.array(actions)
-    
         
         # Charging
         charge_indices = (actions == 1) & (current_soc < max_soc)
@@ -119,7 +118,7 @@ class GridEnvironment:
         next_P_EV=self.P_EV
 
         #Calculate Reward based upon action within same timestep
-        reward = self.calculate_reward() 
+        reward = self.calculate_reward(next_P_EV) 
         
         #Move env forward one timestep
         self.current_timestep += 1
@@ -135,9 +134,12 @@ class GridEnvironment:
     
         return reward, done, next_demand, next_solar, next_wind , next_P_EV
    
-    def calculate_reward(self):
+#NEED TO FOCUS ON THE SEQUENCE OF, OBSERVE STATE, CALCULATE ACTION, CALCULATE REWARD etc
+
+    def calculate_reward(self, next_P_EV):
+        current_demand, current_solar, current_wind = self.get_state()
         # Calculate Reward
-        reward= -np.abs(self.demand- (self.solar + self.wind + np.sum(self.P_EV)))
+        reward= -np.abs(current_demand- (current_solar + current_wind + np.sum(next_P_EV)))
 
         return reward
 
