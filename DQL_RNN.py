@@ -49,13 +49,11 @@ class DQNAgent:
 
 
 
-
     def act(self, state_history):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         lstm_input = np.expand_dims(state_history, axis=0)
         act_values = self.model.predict(lstm_input, verbose=0)
-
         return np.argmax(act_values[0])  # returns action
 
     def learn(self, state_history, action, reward, future_state, done):

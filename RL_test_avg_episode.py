@@ -106,7 +106,7 @@ agent = DQNAgent(state_size=5, action_size=(3**N), sequence_length=sequence_leng
 
 episode_durations = []
 
-for episode in range(100):  # Loop over 3 episodes of same "average" day
+for episode in range(1):  # Loop over 3 episodes of same "average" day
     # Initialize environment for the current day
     start_time = time.time()
     env = GridEnvironment(N, average_demand_per_minute_rd, average_solar_per_minute_rd, average_wind_per_minute_rd, day_index, timestep_length)

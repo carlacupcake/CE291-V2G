@@ -50,6 +50,11 @@ class GridEnvironment:
         Returns:
         - A list of actions for each EV.
         """
+        #action from NN is index,
+        #set action_list=[-1,0,1]
+        #return action_list[nnoutput_index]
+        #actions_list=[-1, 0, 1]
+        #action=action_list[action]
         actions = []
         for _ in range(self.N):
             actions.append(action % 3 - 1)  # Decoding to get -1, 0, 1
