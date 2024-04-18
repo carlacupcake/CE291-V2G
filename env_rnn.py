@@ -67,7 +67,7 @@ class GridEnvironment:
         soc_array = np.array(soc)
         return 4.2 * (soc_array / 100)
 
-    def get_PEV(self, soc, action):
+    def get_PEV(self, soc, actions):
         #MAX's CODE
         #ACTION IS A VECTOR OF 0s 1s, -1s
         #return power output of each EV (P_EV) & the SOC for the next state
@@ -76,9 +76,9 @@ class GridEnvironment:
         #10 groups of 41 EVs?
         #Does just multiplying work?
         timestep = (1/60)  # 1 minute
-        max_power = (11*400)/3500  # Maximum power in kW, attempting to scale 100 EVs?
-        battery_capacity = (50*400)/3500 # Battery capacity, scaled by entire system, each represents 100 EVs, testing only having 1 mega EV
-        charge_efficiency = 0.9
+        max_power = (11*100)/3500  # Maximum power in kW, attempting to scale 100 EVs?
+        battery_capacity = (50*100)/3500 # Battery capacity, scaled by entire system, each represents 100 EVs, testing only having 1 mega EV
+        charge_efficiency = 0.95 #changed to .95 from .9
         discharge_efficiency = 0.95
         min_soc = 20
         max_soc = 80
@@ -92,8 +92,6 @@ class GridEnvironment:
         
         powerEV = np.zeros_like(soc, dtype=float)  # Initialize powerEV array with zeros
 
-        actions=self.decode_action(action)
-        actions = np.array(actions)
         
         # Charging
         charge_indices = (actions == 1) & (current_soc < max_soc)
@@ -119,11 +117,14 @@ class GridEnvironment:
         #Apply action-> calculate reward -> update state of environment
     
         #Apply action, update P_EV states
-        self.SoC, self.P_EV = self.get_PEV(self.SoC, action) #Returns updated SoC & Power levels of each EV AFTER action
+        actions=self.decode_action(action)
+        actions = np.array(actions)
+
+        self.SoC, self.P_EV = self.get_PEV(self.SoC, actions) #Returns updated SoC & Power levels of each EV AFTER action
         next_P_EV=self.P_EV
 
         #Calculate Reward based upon action within same timestep
-        reward = self.calculate_reward(next_P_EV) 
+        reward = self.calculate_reward(next_P_EV, actions) 
         
         #Move env forward one timestep
         self.current_timestep += 1
@@ -141,12 +142,19 @@ class GridEnvironment:
    
 #NEED TO FOCUS ON THE SEQUENCE OF, OBSERVE STATE, CALCULATE ACTION, CALCULATE REWARD etc
 
-    def calculate_reward(self, next_P_EV):
+    def calculate_reward(self, next_P_EV, action):
         current_demand, current_solar, current_wind = self.get_state()
+        # Check if action contains both charging and discharging
+        penalty = 0
+        if 1 in action and -1 in action:
+            penalty = -100  # Large negative penalty
+            return penalty
+    
         # Calculate Reward
         reward= -np.abs(current_demand- (current_solar + current_wind + np.sum(next_P_EV)))
+        reward_penalty=reward+penalty
 
-        return reward
+        return reward_penalty
 
     def get_state(self):
         # Access the current timestep's data correctly

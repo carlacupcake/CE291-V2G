@@ -96,17 +96,17 @@ average_wind_per_minute_rd=np.round(average_wind_per_minute*10)/10
 #testing with 1 MEGA EV
 import time
 timestep_length=(1/60) #in hours
-N=1
+N=3
 sequence_length=60 #In timesteps aka minutes
 state_deque = deque(maxlen=sequence_length)
 
 day_index=0
 # Initialize DQN agent
-agent = DQNAgent(state_size=5, action_size=(3**N), sequence_length=sequence_length)
+agent = DQNAgent(state_size=3+N+1, action_size=(3**N), sequence_length=sequence_length)
 
 episode_durations = []
 
-for episode in range(1):  # Loop over 3 episodes of same "average" day
+for episode in range(50):  # Loop over 3 episodes of same "average" day
     # Initialize environment for the current day
     start_time = time.time()
     env = GridEnvironment(N, average_demand_per_minute_rd, average_solar_per_minute_rd, average_wind_per_minute_rd, day_index, timestep_length)
@@ -173,4 +173,5 @@ plt.legend()
 plt.title('Energy Profiles for the Last Episode')
 plt.xlabel('Timestep')
 plt.ylabel('Energy')
+plt.savefig('Avg_Episode_150_test.png')  # Saves the plot as a PNG file
 plt.show()
