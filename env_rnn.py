@@ -11,7 +11,7 @@ class GridEnvironment:
        
         # Need to think about what start / stop time we do. 12am-12am? 4am-4am etc <-- Carla comment: recommend 12am-11:59pm
         self.N = N  # Number of EVs
-        self.state_size = 3 + N + 1 # State Size, includes time
+        self.state_size = 3 + N + 1 +N # State Size, includes time, and SoC
         self.action_size = 3**N # State Size
 
         self.demand_data = demand_data  
@@ -122,6 +122,7 @@ class GridEnvironment:
 
         self.SoC, self.P_EV = self.get_PEV(self.SoC, actions) #Returns updated SoC & Power levels of each EV AFTER action
         next_P_EV=self.P_EV
+        next_SoC=self.SoC
 
         #Calculate Reward based upon action within same timestep
         reward = self.calculate_reward(next_P_EV, actions) 
@@ -131,23 +132,23 @@ class GridEnvironment:
         done = self.current_timestep >= self.total_timesteps-1
 
         if not done:
-            next_demand, next_solar, next_wind = self.get_state()
+            next_demand, next_solar, next_wind, next_SoC = self.get_state()
         else:
         # Handle the terminal state here, could be resetting or providing terminal values
         # Make sure to handle the case where you don't have a next state to provide
-            next_demand, next_solar, next_wind, next_P_EV = 0, 0, 0, [0] * self.N
+            next_demand, next_solar, next_wind, next_P_EV, next_SoC= 0, 0, 0, [0] * self.N, [0] * self.N
         
     
-        return reward, done, next_demand, next_solar, next_wind , next_P_EV
+        return reward, done, next_demand, next_solar, next_wind , next_P_EV, next_SoC
    
 #NEED TO FOCUS ON THE SEQUENCE OF, OBSERVE STATE, CALCULATE ACTION, CALCULATE REWARD etc
 
     def calculate_reward(self, next_P_EV, action):
-        current_demand, current_solar, current_wind = self.get_state()
+        current_demand, current_solar, current_wind, current_SoC = self.get_state()
         # Check if action contains both charging and discharging
         penalty = 0
         if 1 in action and -1 in action:
-            penalty = -100  # Large negative penalty
+            penalty = -5  # Large negative penalty
             return penalty
     
         # Calculate Reward
@@ -161,10 +162,11 @@ class GridEnvironment:
         current_demand = self.demand_data[self.day_index, self.current_timestep]
         current_solar = self.solar_data[self.day_index, self.current_timestep]
         current_wind = self.wind_data[self.day_index, self.current_timestep]
+        current_SoC=self.SoC
 
 
         # Depending on your needs, return these values directly or along with other state information
-        return current_demand, current_solar, current_wind
+        return current_demand, current_solar, current_wind, current_SoC
 
 
 
