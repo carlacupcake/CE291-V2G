@@ -12,8 +12,8 @@ class GridEnvironment:
        
         # Need to think about what start / stop time we do. 12am-12am? 4am-4am etc <-- Carla comment: recommend 12am-11:59pm
         self.N = N  # Number of EVs
-        self.state_size = 3 + 1 +N # State Size, includes time, and SoC.... include P_Ev again?
-        self.action_size = 201  # Action size from -1.0 to 1.0 in 0.01 steps
+        self.state_size = 3  # State Size, includes time, and SoC.... include P_Ev again?,, DELETE SOC?
+        self.action_size = 21  # Action size from -1.0 to 1.0 in 0.1 steps
 
         self.demand_data = demand_data  
         self.solar_data = solar_data
@@ -42,8 +42,8 @@ class GridEnvironment:
 
     def decode_action(self, action_index):
         # Convert action index to proportion
-        action = (action_index - 100) / 100.0  # Converts 0 to 200 into -1.0 to 1.0
-        return [action]
+        action = (action_index - 10) / 10.0  # Converts 0 to 200 into -1.0 to 1.0
+        return action
 
     def battery_voltage(self, soc):
         min_voltage = 3.0  # Minimum voltage at 0% SoC
@@ -63,31 +63,34 @@ class GridEnvironment:
         self.P_EV = [0] * self.N  # Reset power for each EV
 
         # Filter EVs based on action and SoC constraints
-        if actions[0] > 0:  # Charging
+        if actions > 0:  # Charging
             eligible_evs = [i for i in range(self.N) if self.SoC[i] < max_soc]
-        elif actions[0] < 0:  # Discharging
+        elif actions < 0:  # Discharging
             eligible_evs = [i for i in range(self.N) if self.SoC[i] > min_soc]
         else:
             eligible_evs = []
-
+        #print('action test', actions)
         # Determine the number of EVs to affect based on the action percentage
-        num_evs_affected = int(abs(actions[0]) * len(eligible_evs))
+        num_evs_affected = int(abs(actions) * len(eligible_evs))
+        #print("numevs test", num_evs_affected)
         selected_evs = random.sample(eligible_evs, num_evs_affected)
+        #print("selected evs tes", selected_evs)
 
         voltages= self.battery_voltage(self.SoC)
-        
+        SoC_after_action=self.SoC
+        PEV_after_action=self.P_EV
         for i in selected_evs:
-            if actions[0] > 0:  # Charging
+            if actions > 0:  # Charging
                 power = max_power * voltages[i] / 4.2   
                 energy_added = power * timestep * charge_efficiency
-                self.SoC[i] = self.SoC[i] + energy_added / battery_capacity * 100
-                self.P_EV[i] = power # Charging ADDs to Demand (should be negative here)
-            elif actions[0] < 0:  # Discharging
+                SoC_after_action[i] = SoC_after_action[i] + energy_added / battery_capacity * 100
+                PEV_after_action[i] = power # Charging ADDs to Demand (should be negative here)
+            elif actions < 0:  # Discharging
                 power = max_power * voltages[i] /4.2  
                 energy_used = power * timestep * discharge_efficiency #energy used will be negative
-                self.SoC[i] = self.SoC[i] - energy_used / battery_capacity * 100
-                self.P_EV[i] = -1*power  ## Discharging subtracts from Demand (should be positive here)
-        return self.SoC, self.P_EV
+                SoC_after_action[i] = SoC_after_action[i] - energy_used / battery_capacity * 100
+                PEV_after_action[i] = -1*power  ## Discharging subtracts from Demand (should be positive here)
+        return SoC_after_action, PEV_after_action
 
 
     def step(self, action):
@@ -96,11 +99,13 @@ class GridEnvironment:
         actions=self.decode_action(action)
         actions = np.array(actions)
 
-
         next_SoC, next_P_EV = self.get_PEV(actions) #Returns updated SoC & Power levels of each EV AFTER action
+        self.SoC = next_SoC.copy()
+        self.P_EV = next_P_EV.copy()
     
         #Calculate Reward based upon action within same timestep
         reward = self.calculate_reward(next_P_EV, actions) 
+        #print('sum PEV test', np.sum(next_P_EV))
         reward = self.clip_rewards(reward)
         #Move env forward one timestep
         self.current_timestep += 1

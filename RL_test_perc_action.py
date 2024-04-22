@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
 
 #NEW DATA TEST
-caiso=pd.read_csv("/Users/john_schafer/Downloads/CE291/Final_Project/CAISO_zone_1_.csv")
+caiso=pd.read_csv("/Users/john_schafer/Downloads/CE291/CAISO_zone_1_.csv")
 #Transform Data to our format
 caiso['time'] = pd.to_datetime(caiso['time'])
 caiso.set_index('time', inplace=True)
@@ -159,7 +159,7 @@ plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.5)
 
 
 plt.legend()
-plt.title('Energy Profiles for 100th Episode')
+plt.title('Energy Profiles for 1000th Episode')
 plt.xlabel('Timestep')
 plt.ylabel('Energy')
 plt.savefig('1000_episodes_perc_action.png')

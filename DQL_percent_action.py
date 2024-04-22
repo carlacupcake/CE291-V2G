@@ -16,8 +16,8 @@ class DQNAgent:
         self.sequence_length= sequence_length
         self.memory = deque(maxlen=2000)  # Experience replay buffer
         self.batch_size=24 #?
-        self.gamma = 0  # discount rate tweak
-        self.epsilon = 1  # exploration rate Tweak, no decay in this version
+        self.gamma = .3  # discount rate tweak
+        self.epsilon = .2  # exploration rate Tweak, no decay in this version
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995 # tweak
         self.learning_rate = 0.01
@@ -94,7 +94,7 @@ class DQNAgent:
 
         # Generate predictions for the current state to update the targets
         target_f = self.model.predict(lstm_input, verbose=0)
-
+   
         # Update the Q-value for the action taken
         target_f[0][action] = target
         self.model.fit(lstm_input, target_f, epochs=1, verbose=0)
