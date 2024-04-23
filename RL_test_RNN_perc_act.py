@@ -103,8 +103,9 @@ state_deque = deque(maxlen=sequence_length)
 
 day_index=0
 # Initialize DQN agent
-agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length)
-
+model_700 = tf.keras.models.load_model('/Users/john_schafer/Downloads/CE291/CE291-V2G/model_RNN_700_perc_act.h5')
+agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length, model=model_700)
+agent.epsilon=.496
 episode_durations = []
 
 for episode in range(700):  # Loop over 3 episodes of same "average" day
@@ -124,7 +125,7 @@ for episode in range(700):  # Loop over 3 episodes of same "average" day
         normalized_timestep = np.array([timestep / T])   # T is the total number of timesteps in a day
 
         current_demand, current_solar, current_wind, current_SoC = env.get_state()
-        current_P_EV=env.P_EV
+        current_P_EV= env.P_EV
         current_state=np.concatenate([np.array([current_demand, current_solar, current_wind])])#, np.array(current_P_EV), normalized_timestep, current_SoC])
 
         state_deque.append(current_state)
@@ -159,10 +160,10 @@ for episode in range(700):  # Loop over 3 episodes of same "average" day
             # Handle episode completion, if applicable
             break
     agent.epsilon=max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay) 
-    print(f"Total reward for episode {episode}: {total_reward}")
+    print(f"Total reward for episode {episode+699}: {total_reward}")
     episode_durations.append(time.time() - start_time)
 print("Individual episode durations:", episode_durations)
-agent.model.save('model_RNN_500_perc_act.h5')
+agent.model.save('model_RNN_1400_perc_act.h5')
 
 plt.figure(figsize=(14, 8))
 plt.plot(demand_profile, label='Demand', color="red")
@@ -178,8 +179,8 @@ plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.5)
 
 
 plt.legend()
-plt.title('Energy Profiles for 500th Episode')
+plt.title('Energy Profiles for 1400th Episode')
 plt.xlabel('Timestep')
 plt.ylabel('Energy')
-plt.savefig('500_RNN_perc_action.png')
+plt.savefig('1400_RNN_perc_action.png')
 plt.show()

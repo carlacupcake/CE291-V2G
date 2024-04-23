@@ -10,7 +10,7 @@ import numpy as np
 
 
 class DQNAgent:
-    def __init__(self, state_size, action_size, sequence_length ):
+    def __init__(self, state_size, action_size, sequence_length, model=None):
         self.state_size = state_size
         self.action_size = action_size
         self.sequence_length= sequence_length
@@ -20,7 +20,11 @@ class DQNAgent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.999 # tweak
         self.learning_rate = 0.1
-        self.model = self._build_model()
+        
+        if model is None:
+            self.model = self._build_model()
+        else:
+            self.model = model
     """
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
