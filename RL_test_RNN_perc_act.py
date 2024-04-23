@@ -93,8 +93,7 @@ average_wind_10min=average_wind_10min.reshape(144,1).T
 
 #testing over same "average" episode
 #testing with simple RNN
-#testing with rounded, "binned" energy profiles
-#testing with 1 MEGA EV
+
 import time
 timestep_length=(10/60) #in hours
 N=800
@@ -104,7 +103,7 @@ state_deque = deque(maxlen=sequence_length)
 day_index=0
 # Initialize DQN agent
 model_1400 = tf.keras.models.load_model('/Users/john_schafer/Downloads/CE291/CE291-V2G/model_RNN_1400_perc_act.h5')
-agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length, model=model_700)
+agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length, model=model_1400)
 agent.epsilon=.246
 episode_durations = []
 
@@ -181,6 +180,6 @@ plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.5)
 plt.legend()
 plt.title('Energy Profiles for 2000th Episode')
 plt.xlabel('Timestep')
-plt.ylabel('Energy')
+plt.ylabel('Power')
 plt.savefig('2000_RNN_perc_action.png')
 plt.show()
