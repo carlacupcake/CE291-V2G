@@ -15,11 +15,11 @@ class DQNAgent:
         self.action_size = action_size
         self.sequence_length= sequence_length
         self.memory = deque(maxlen=2000)  # Experience replay buffer
-        self.gamma = 0.95  # discount rate tweak
-        self.epsilon = .1  # exploration rate Tweak, no decay in this version
+        self.gamma = 0.1  # discount rate tweak
+        self.epsilon = 1  # exploration rate Tweak, no decay in this version
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995 # tweak
-        self.learning_rate = 0.01
+        self.epsilon_decay = 0.999 # tweak
+        self.learning_rate = 0.1
         self.model = self._build_model()
     """
     def _build_model(self):

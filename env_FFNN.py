@@ -90,6 +90,9 @@ class GridEnvironment:
                 energy_used = power * timestep * discharge_efficiency #energy used will be negative
                 SoC_after_action[i] = SoC_after_action[i] - energy_used / battery_capacity * 100
                 PEV_after_action[i] = -1*power  ## Discharging subtracts from Demand (should be positive here)
+
+        PEV_after_action=np.array(PEV_after_action)
+        
         return SoC_after_action, PEV_after_action
 
 
@@ -106,7 +109,7 @@ class GridEnvironment:
         #Calculate Reward based upon action within same timestep
         reward = self.calculate_reward(next_P_EV, actions) 
         #print('sum PEV test', np.sum(next_P_EV))
-        reward = self.clip_rewards(reward)
+        #reward = self.clip_rewards(reward)
         #Move env forward one timestep
         self.current_timestep += 1
         done = self.current_timestep >= self.total_timesteps-1
@@ -123,13 +126,13 @@ class GridEnvironment:
    
 #NEED TO FOCUS ON THE SEQUENCE OF, OBSERVE STATE, CALCULATE ACTION, CALCULATE REWARD etc
 
-    def calculate_reward(self, next_P_EV, action):
+    def calculate_reward(self, next_P_EV, action_index):
         current_demand, current_solar, current_wind, current_SoC = self.get_state()
 
         #reward= np.abs(current_demand - (current_solar + current_wind + np.sum(next_P_EV)))
 
         reward= -1*np.abs(current_demand+ np.sum(next_P_EV) - (current_solar + current_wind))
-    
+        reward=reward + 100
         return reward
 
     def clip_rewards(self, reward, min_value=-1, max_value=1):

@@ -16,7 +16,7 @@ class DQNAgent:
         self.memory = deque(maxlen=2000)  # Experience replay buffer
         self.batch_size=24 #?
         self.gamma = .3  # discount rate tweak
-        self.epsilon = .2  # exploration rate Tweak, no decay in this version
+        self.epsilon = .1  # exploration rate Tweak, no decay in this version
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995 # tweak
         self.learning_rate = 0.1

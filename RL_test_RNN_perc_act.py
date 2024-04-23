@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
 
 #NEW DATA TEST
-caiso=pd.read_csv("/Users/john_schafer/Downloads/CE291/Final_Project/CAISO_zone_1_.csv")
+caiso=pd.read_csv("/Users/john_schafer/Downloads/CE291/CAISO_zone_1_.csv")
 
 #Transform Data to our format
 caiso['time'] = pd.to_datetime(caiso['time'])
@@ -66,16 +66,6 @@ average_net_10min=average_demand_10min-average_solar_10min-average_wind_10min
 timestep_length=1 #in minutes
 T=144 # minutes in 24hrs
 
-time_steps = np.arange(0, T * timestep_length, timestep_length) 
-
-print("Length of timesteps:", len(time_steps))
-print("Length of average_demand_10min:", len(average_demand_10min))
-print("Length of average_solar_10min:", len(average_solar_10min))
-print("Length of average_wind_10min:", len(average_wind_10min))
-
-timestep_length=1 #in minutes
-T=144 # minutes in 24hrs
-
 time_steps = np.arange(0, T * timestep_length, timestep_length)  # Generate a time axis\
 plt.figure(figsize=(10, 6))
 plt.plot(time_steps, average_demand_10min, label='Load Power')
@@ -107,17 +97,17 @@ average_wind_10min=average_wind_10min.reshape(144,1).T
 #testing with 1 MEGA EV
 import time
 timestep_length=(10/60) #in hours
-N=5
-sequence_length=12 #In timesteps aka minutes
+N=800
+sequence_length=144 #In timesteps aka minutes
 state_deque = deque(maxlen=sequence_length)
 
 day_index=0
 # Initialize DQN agent
-agent = DQNAgent(state_size=3+N+1 +N, action_size=(3**N), sequence_length=sequence_length)
+agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length)
 
 episode_durations = []
 
-for episode in range(2000):  # Loop over 3 episodes of same "average" day
+for episode in range(700):  # Loop over 3 episodes of same "average" day
     # Initialize environment for the current day
     start_time = time.time()
     env = GridEnvironment(N, average_demand_10min, average_solar_10min, average_wind_10min, day_index, timestep_length)
@@ -135,7 +125,7 @@ for episode in range(2000):  # Loop over 3 episodes of same "average" day
 
         current_demand, current_solar, current_wind, current_SoC = env.get_state()
         current_P_EV=env.P_EV
-        current_state=np.concatenate([np.array([current_demand, current_solar, current_wind]), np.array(current_P_EV), normalized_timestep, current_SoC])
+        current_state=np.concatenate([np.array([current_demand, current_solar, current_wind])])#, np.array(current_P_EV), normalized_timestep, current_SoC])
 
         state_deque.append(current_state)
         state_history = np.array(state_deque)
@@ -144,7 +134,6 @@ for episode in range(2000):  # Loop over 3 episodes of same "average" day
             continue  # Wait until deque is full before starting training
         
         action = agent.act(state_history)  # Decide action based on current state
-
         # Execute action in the environment and observe the next state, reward, and done flag
         reward, done, next_demand, next_solar, next_wind, next_P_EV, next_SoC = env.step(action)
 
@@ -156,7 +145,7 @@ for episode in range(2000):  # Loop over 3 episodes of same "average" day
         
         normalized_next_timestep = np.array([(timestep+1) / T])
         # Construct the new state from the separated components
-        next_state = np.concatenate([np.array([next_demand, next_solar, next_wind]), np.array(next_P_EV), normalized_next_timestep, next_SoC])
+        next_state = np.concatenate([np.array([next_demand, next_solar, next_wind])])#, np.array(next_P_EV), normalized_next_timestep, next_SoC])
         
         # Directly learn from this transition without using replay
         agent.learn(state_history, action, reward, next_state, done)
@@ -169,31 +158,28 @@ for episode in range(2000):  # Loop over 3 episodes of same "average" day
         if done:
             # Handle episode completion, if applicable
             break
-
+    agent.epsilon=max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay) 
     print(f"Total reward for episode {episode}: {total_reward}")
     episode_durations.append(time.time() - start_time)
 print("Individual episode durations:", episode_durations)
-
+agent.model.save('model_RNN_500_perc_act.h5')
 
 plt.figure(figsize=(14, 8))
-plt.plot(demand_profile, label='Demand')
-plt.plot(solar_profile, label='Solar')
-#plt.plot(wind_profile, label='Wind')
-plt.plot(demand_profile-solar_profile- wind_profile-PEV_profile, label='NET')
+plt.plot(demand_profile, label='Demand', color="red")
+plt.plot(-1*solar_profile, label='Solar', color='green', marker='o')
+plt.plot(-1*wind_profile, label='Wind', color='green', marker='+')
+
+plt.plot(demand_profile+PEV_profile -solar_profile- wind_profile, label='NET=REWARD')
 
 # Plot the PEV_profile as a bar graph
 timesteps = np.arange(len(PEV_profile))  
-plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.7)  
+plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.5)  
 
 
 
 plt.legend()
-plt.title('Energy Profiles for the Last Episode')
+plt.title('Energy Profiles for 500th Episode')
 plt.xlabel('Timestep')
 plt.ylabel('Energy')
-
-save_path = '/Users/john_schafer/Downloads/CE291/Final_Project/CE291-V2G/final_episode_2000trials.png'  # Change the path and filename as needed
-plt.savefig(save_path)
-
-
+plt.savefig('500_RNN_perc_action.png')
 plt.show()
