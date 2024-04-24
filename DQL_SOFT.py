@@ -18,7 +18,7 @@ class DQNAgent:
         self.gamma = 0.01  # discount rate tweak
         self.epsilon = 1  # exploration rate Tweak, no decay in this version
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.95 # tweak
+        self.epsilon_decay = 0.995 # tweak
         self.learning_rate = 0.1
         
         if model is None:
