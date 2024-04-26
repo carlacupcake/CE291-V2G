@@ -126,12 +126,13 @@ class GridEnvironment:
         else:
             eligible_evs = []
         #print('action test', actions)
-        # Determine the number of EVs to affect based on the action percentage
-        num_evs_affected = int(abs(actions) * len(eligible_evs))
-        #print("numevs test", num_evs_affected)
-        selected_evs = random.sample(eligible_evs, num_evs_affected)
-        #print("selected evs tes", selected_evs)
 
+        # Determine the number of EVs to affect based on the action percentage
+        num_evs_affected = int(abs(actions) * self.N)
+        # Ensure we do not sample more EVs than are eligible
+        num_evs_affected = min(num_evs_affected, len(eligible_evs))
+        selected_evs = random.sample(eligible_evs, num_evs_affected)
+        
         voltages= self.battery_voltage(self.SoC)
         SoC_after_action=self.SoC
         PEV_after_action=self.P_EV
