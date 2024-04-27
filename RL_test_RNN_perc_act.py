@@ -102,12 +102,12 @@ state_deque = deque(maxlen=sequence_length)
 
 day_index=0
 # Initialize DQN agent
-model_1400 = tf.keras.models.load_model('/Users/john_schafer/Downloads/CE291/CE291-V2G/model_RNN_1400_perc_act.h5')
-agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length, model=model_1400)
-agent.epsilon=.246
+#model_1400 = tf.keras.models.load_model('/Users/john_schafer/Downloads/CE291/CE291-V2G/model_RNN_1400_perc_act.h5')
+agent = DQNAgent(state_size=3, action_size=21, sequence_length=sequence_length)
+#agent.epsilon=.246
 episode_durations = []
 
-for episode in range(600):  # Loop over 3 episodes of same "average" day
+for episode in range(1000):  # Loop over 3 episodes of same "average" day
     # Initialize environment for the current day
     start_time = time.time()
     env = GridEnvironment(N, average_demand_10min, average_solar_10min, average_wind_10min, day_index, timestep_length)
@@ -159,10 +159,10 @@ for episode in range(600):  # Loop over 3 episodes of same "average" day
             # Handle episode completion, if applicable
             break
     agent.epsilon=max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay) 
-    print(f"Total reward for episode {episode+1399}: {total_reward}")
+    print(f"Total reward for episode {episode}: {total_reward}")
     episode_durations.append(time.time() - start_time)
 print("Individual episode durations:", episode_durations)
-agent.model.save('model_RNN_2000_perc_act.h5')
+agent.model.save('model_DQL_1000.h5')
 
 plt.figure(figsize=(14, 8))
 plt.plot(demand_profile, label='Demand', color="red")
@@ -178,8 +178,8 @@ plt.bar(timesteps, PEV_profile, width=1.0, label='PEV', alpha=0.5)
 
 
 plt.legend()
-plt.title('Energy Profiles for 2000th Episode')
+plt.title('Energy Profiles for 1000th Episode')
 plt.xlabel('Timestep')
 plt.ylabel('Power')
-plt.savefig('2000_RNN_perc_action.png')
+plt.savefig('model_DQL_1000.png')
 plt.show()
